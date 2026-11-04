@@ -1,9 +1,9 @@
 <?php
 //nustatymai.php
-define("DB_SERVER", "localhost");
-define("DB_USER", "stud");
-define("DB_PASS", "stud");
-define("DB_NAME", "vartvald");
+define("DB_SERVER", getenv("DB_HOST") ?: "localhost");
+define("DB_USER", getenv("DB_USER") ?: "stud");
+define("DB_PASS", getenv("DB_PASSWORD") ?: "stud");
+define("DB_NAME", getenv("DB_NAME") ?: "vartvald");
 define("TBL_USERS", "users");
 
 // Vartotojų profiliai
