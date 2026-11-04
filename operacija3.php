@@ -1,51 +1,36 @@
 <?php
-// operacija3.php  Parodoma registruotų vartotojų lentelė
-// iterpiamas meniu
 session_start();
-if (!isset($_SESSION['prev']) || ($_SESSION['prev'] != "index"))
-{ header("Location: logout.php");exit;}
 
+if (empty($_SESSION['user']) ||
+    !in_array((int)($_SESSION['ulevel'] ?? -1), [5,9], true)) {
+    header("Location: index.php");
+    exit;
+}
 ?>
-<html>
-    <head>
-        <meta http-equiv="X-UA-Compatible" content="IE=9; text/html; charset=utf-8">
-        <title>Operacija 3</title>
-        <link href="include/styles.css" rel="stylesheet" type="text/css" >
-    </head>
-    <body>
-        <table class="center" ><tr><td>
-            <center><img src="include/top.png"></center>
-        </td></tr><tr><td> 
- <?php
-		include("include/meniu.php"); //įterpiamas meniu pagal vartotojo rolę
- 			$db=mysqli_connect(DB_SERVER, DB_USER, DB_PASS, DB_NAME);
-			$sql = "SELECT username,userlevel,email "
-            . "FROM " . TBL_USERS . " ORDER BY userlevel DESC,username";
-			$result = mysqli_query($db, $sql);
-			if (!$result || (mysqli_num_rows($result) < 1))  
-			{echo "Klaida skaitant lentelę users"; exit;}
- ?> 
-		</table>
-        <center><font size="5">Į šį puslapį įterptas vartotojo meniu ir nuskaitoma registruotų vartotojų lentelė</font></center><br>
-		
-    <table class="center" border="1" cellspacing="0" cellpadding="3">
-    <tr><td><b>Vartotojo vardas</b></td><td><b>Rolė</b></td><td><b>E-paštas</b></td></tr>
-<?php
-        while($row = mysqli_fetch_assoc($result)) 
-	{	 
-	    $level=$row['userlevel']; 
-	  	$user= $row['username'];
-		$email=$row['email'];
-		    echo "<tr><td>".$user. "</td><td>";    
- 			if ($level == UZBLOKUOTAS) echo "Užblokuotas";
-			else
-				{foreach($user_roles as $x=>$x_value)
-			      {if ($x_value == $level) echo $x;}
-				} 
-			echo "</td><td>";
-		    echo $email."</td></tr>"; 
-      		
-	}
- ?>
-	  </table>
-  </body></html>
+
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+    <meta charset="UTF-8">
+    <title>Skelbimų kontrolė</title>
+    <link href="include/styles.css" rel="stylesheet">
+</head>
+<body>
+    <h1>Skelbimų kontrolė</h1>
+
+    <?php include("include/meniu.php"); ?>
+
+    <p><a href="index.php">Grįžti į pradžią</a></p>
+
+    <h2>Skelbimų administravimas</h2>
+    <p>Šioje aplinkoje kontrolierius galės:</p>
+    <ul style="display:inline-block;text-align:left">
+        <li>Peržiūrėti visus skelbimus.</li>
+        <li>Matyti skelbimų peržiūrų skaičių.</li>
+        <li>Pašalinti netinkamus skelbimus.</li>
+        <li>Pranešti apie galimus dingusių ir rastų gyvūnų sutapimus.</li>
+    </ul>
+
+    <p>Skelbimų valdymo lentelę pridėsime prijungę duomenų bazę.</p>
+</body>
+</html>

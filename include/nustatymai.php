@@ -30,9 +30,9 @@ $uregister="both";  // kaip registruojami vartotojai:
 // operacijos modulis
 
 $usermenu=array(
-	["Demo operacija-1",[0,4,5,9],"operacija1.php"],
-	["Demo operacija-2",[4,5],"operacija2.php"],
-	["Demo operacija-3",[4,5,9],"operacija3.php"],
+    ["Skelbimų peržiūra", [0,4,5,9], "operacija1.php"],
+    ["Skelbimo įvedimas", [4,5,9], "operacija2.php"],
+    ["Skelbimų kontrolė", [5,9], "operacija3.php"],
 			  ); 
 
 // karkaso vaizdavimą paredaguokite savo stiliumi keisdami top.png (pradinis yra 1027x122, read teisė visiems)
