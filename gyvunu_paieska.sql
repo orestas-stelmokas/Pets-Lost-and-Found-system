@@ -46,3 +46,35 @@ CREATE TABLE IF NOT EXISTS skelbimas (
     INDEX idx_busena (busena)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_unicode_ci;
+
+  -- Skelbimų nuotraukos
+CREATE TABLE IF NOT EXISTS nuotrauka (
+    nuotrauka_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    skelbimas_id INT UNSIGNED NOT NULL,
+    failo_kelias VARCHAR(255) NOT NULL,
+    eiles_nr SMALLINT UNSIGNED NOT NULL DEFAULT 1,
+    ikelta_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (skelbimas_id)
+        REFERENCES skelbimas(skelbimas_id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS zinute (
+    zinute_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    skelbimas_id INT UNSIGNED NOT NULL,
+    siuntejas_id VARCHAR(32) NOT NULL,
+    gavejas_id VARCHAR(32) NOT NULL,
+    tekstas TEXT NOT NULL,
+    issiusta_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    perskaityta_at TIMESTAMP NULL DEFAULT NULL,
+
+    INDEX idx_siuntejas (siuntejas_id),
+    INDEX idx_gavejas (gavejas_id),
+
+    FOREIGN KEY (skelbimas_id)
+        REFERENCES skelbimas(skelbimas_id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci;

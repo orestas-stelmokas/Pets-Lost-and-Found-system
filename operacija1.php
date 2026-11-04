@@ -100,6 +100,7 @@ try {
                 <th>Aprašymas</th>
                 <th>Autorius</th>
                 <th>Galioja iki</th>
+				<th>Susisiekti</th>
             </tr>
 
             <?php foreach ($skelbimai as $s): ?>
@@ -137,6 +138,26 @@ try {
                     <td>
                         <?= h($s['galioja_iki'] ?? 'Nenurodyta') ?>
                     </td>
+
+					<td>
+						<?php if ((int)($_SESSION['ulevel'] ?? 0) === 0): ?>
+
+							Tik registruotiems naudotojams
+
+						<?php elseif (
+							($_SESSION['userid'] ?? '') === $s['autorius_id']
+						): ?>
+
+							<a href="zinutes.php">Mano žinutės</a>
+
+						<?php else: ?>
+
+							<a href="zinutes.php?skelbimas_id=<?= (int)$s['skelbimas_id'] ?>">
+								Rašyti autoriui
+							</a>
+
+						<?php endif; ?>
+					</td>
                 </tr>
             <?php endforeach; ?>
 
