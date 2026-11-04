@@ -23,7 +23,7 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
     volumes:
       - db_data:/var/lib/mysql
-      - ./vartvald.sql:/docker-entrypoint-initdb.d/01-vartvald.sql:ro
+      - ./gyvunu_paieska.sql:/docker-entrypoint-initdb.d/01-gyvunu_paieska.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
       interval: 5s

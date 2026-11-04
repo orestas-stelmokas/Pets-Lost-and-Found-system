@@ -1,79 +1,223 @@
 <?php
-// admin.php
-// vartotojų įgaliojimų keitimas ir naujo vartotojo registracija, jei leidžia nustatymai
-// galima keisti vartotojų roles, tame tarpe uzblokuoti ir/arba juos pašalinti
-// sužymėjus pakeitimus į procadmin.php, bus dar perklausta
-
 session_start();
-include("include/nustatymai.php");
-include("include/functions.php");
-// cia sesijos kontrole
-if (!isset($_SESSION['prev']) || ($_SESSION['ulevel'] != $user_roles[ADMIN_LEVEL]))   { header("Location: logout.php");exit;}
-$_SESSION['prev']="admin";
-date_default_timezone_set("Europe/Vilnius");
+require_once 'include/nustatymai.php';
+require_once 'include/functions.php';
+
+if (empty($_SESSION['user']) ||
+    (int)($_SESSION['ulevel'] ?? -1) !== (int)$user_roles[ADMIN_LEVEL]) {
+    header('Location: index.php');
+    exit;
+}
+
+if (empty($_SESSION['leidimu_token'])) {
+    $_SESSION['leidimu_token'] = bin2hex(random_bytes(32));
+}
+
+// Skelbimų publikavimo leidimo keitimas
+if ($_SERVER['REQUEST_METHOD'] === 'POST' &&
+    isset($_POST['keisti_skelbimo_leidima'])) {
+
+    $token = $_POST['leidimu_token'] ?? '';
+    $userid = $_POST['userid'] ?? '';
+    $reiksme = $_POST['gali_skelbti'] ?? '';
+
+    if (!is_string($token) ||
+        !hash_equals($_SESSION['leidimu_token'], $token) ||
+        !is_string($userid) ||
+        !preg_match('/^[a-f0-9]{32}$/i', $userid) ||
+        !in_array($reiksme, ['0', '1'], true)) {
+
+        http_response_code(400);
+        exit('Neteisinga užklausa.');
+    }
+
+    $db = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME);
+
+    $stmt = $db->prepare(
+        'UPDATE users
+         SET gali_skelbti = ?
+         WHERE userid = ? AND userlevel IN (4,5,9)'
+    );
+
+    $leisti = (int)$reiksme;
+
+    $stmt->bind_param('is', $leisti, $userid);
+    $stmt->execute();
+    $stmt->close();
+    $db->close();
+
+    $_SESSION['message'] = $leisti
+        ? 'Leidimas skelbti suteiktas.'
+        : 'Leidimas skelbti atšauktas.';
+
+    header('Location: admin.php');
+    exit;
+}
+
+$_SESSION['prev'] = 'admin';
+date_default_timezone_set('Europe/Vilnius');
+
+$db = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME);
+
+$result = $db->query(
+    'SELECT userid, username, userlevel, email,
+            timestamp, gali_skelbti
+     FROM users
+     ORDER BY userlevel DESC, username'
+);
+
+function h($text) {
+    return htmlspecialchars((string)$text, ENT_QUOTES, 'UTF-8');
+}
 ?>
 
-<html>
-    <head>
-        <meta http-equiv="X-UA-Compatible" content="IE=9; text/html; charset=utf-8">
-        <title>Administratoriaus sąsaja</title>
-        <link href="include/styles.css" rel="stylesheet" type="text/css" >
-    </head>
-    <body>
-        <table class="center" ><tr><td>
-            <center><img src="include/top.png"></center>
-            </td></tr><tr><td>
-		<center><font size="5">Vartotojų registracija, peržiūra ir įgaliojimų keitimas</font></center></td></tr></table> <br>
-		<center><b><?php echo $_SESSION['message']; ?></b></center>
-		<form name="vartotojai" action="procadmin.php" method="post">
-	    <table class="center" style=" width:75%; border-width: 2px; border-style: dotted;">
-		         <tr><td width=30%><a href="index.php">[Atgal]</a></td><td width=30%> 
-	<?php
-		   if ($uregister != "self") echo "<a href=\"register.php\"><b>Registruoti naują vartotoją<b></a><td>";
-		   else echo "</td>";
-	?>
-		   
-			<td width="30%">Atlikite reikalingus pakeitimus ir</td><td width="10%"> <input type="submit" value="Vykdyti"></td></tr></table> <br> 
-<?php
-    
-	$db=mysqli_connect(DB_SERVER, DB_USER, DB_PASS, DB_NAME);
-	$sql = "SELECT username,userlevel,email,timestamp "
-            . "FROM " . TBL_USERS . " ORDER BY userlevel DESC,username";
-	$result = mysqli_query($db, $sql);
-	if (!$result || (mysqli_num_rows($result) < 1))  
-			{echo "Klaida skaitant lentelę users"; exit;}
-?>
-    <table class="center"  border="1" cellspacing="0" cellpadding="3">
-    <tr><td><b>Vartotojo vardas</b></td><td><b>Rolė</b></td><td><b>E-paštas</b></td><td><b>Paskutinį kartą aktyvus</b></td><td><b>Šalinti?</b></td></tr>
-<?php
-        while($row = mysqli_fetch_assoc($result)) 
-	{	 
-	    $level=$row['userlevel']; 
-	  	$user= $row['username'];
-	  	$email = $row['email'];
-      	$time = date("Y-m-d G:i", strtotime($row['timestamp']));
-      	echo "<tr><td>".$user. "</td><td>";
-    	echo "<select name=\"role_".$user."\">";
-      	$yra=false;
-		foreach($user_roles as $x=>$x_value)
-  			{echo "<option ";
-        	 if ($x_value == $level) {$yra=true;echo "selected ";}
-             echo "value=\"".$x_value."\" ";
-         	 echo ">".$x."</option>";
-        	 }
-		if (!$yra)
-        {echo "<option selected value=".$level.">Neegzistuoja=".$level."</option>";}
-        $UZBLOKUOTAS=UZBLOKUOTAS; echo "<option ";
-        if ($level == UZBLOKUOTAS) echo "selected ";
-          echo "value=".$UZBLOKUOTAS." ";
-        echo ">Užblokuotas</option>";      // papildoma opcija
-      echo "</select></td>";
-          
-      echo "<td>".$email."</td><td>".$time."</td>";
-      echo "<td><input type=\"checkbox\" name=\"naikinti_".$user."\">";
-   }
-?>
-        </table>
-        <br> <input type="submit" value="Vykdyti">
-        </form>
-    </body></html>
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+    <meta charset="UTF-8">
+    <title>Naudotojų valdymas</title>
+    <link href="include/styles.css" rel="stylesheet">
+</head>
+<body>
+
+    <h1>Gyvūnų paieškos ir radimo sistema</h1>
+    <h2>Naudotojų valdymas</h2>
+
+    <p>
+        <a href="index.php">Atgal į pradžią</a>
+
+        <?php if ($uregister !== 'self'): ?>
+            | <a href="register.php">Registruoti naują naudotoją</a>
+        <?php endif; ?>
+    </p>
+
+    <?php if (!empty($_SESSION['message'])): ?>
+        <p style="color:green">
+            <?= h($_SESSION['message']) ?>
+        </p>
+        <?php $_SESSION['message'] = ''; ?>
+    <?php endif; ?>
+
+    <!-- Rolių keitimui ir šalinimui skirta forma -->
+    <form id="vartotojai"
+          action="procadmin.php"
+          method="post"></form>
+
+    <table class="center" border="1"
+           cellpadding="8" cellspacing="0">
+
+        <tr>
+            <th>Naudotojo vardas</th>
+            <th>Rolė</th>
+            <th>El. paštas</th>
+            <th>Paskutinis aktyvumas</th>
+            <th>Skelbimų publikavimas</th>
+            <th>Šalinti?</th>
+        </tr>
+
+        <?php while ($u = $result->fetch_assoc()): ?>
+            <?php
+                $user = $u['username'];
+                $level = (int)$u['userlevel'];
+                $leista = (int)$u['gali_skelbti'] === 1;
+            ?>
+
+            <tr>
+                <td><?= h($user) ?></td>
+
+                <!-- Naudotojo rolė -->
+                <td>
+                    <select name="role_<?= h($user) ?>"
+                            form="vartotojai">
+
+                        <?php foreach ($user_roles as $role => $skaicius): ?>
+                            <option value="<?= h($skaicius) ?>"
+                                <?= $level === (int)$skaicius
+                                    ? 'selected' : '' ?>>
+                                <?= h($role) ?>
+                            </option>
+                        <?php endforeach; ?>
+
+                        <option value="<?= UZBLOKUOTAS ?>"
+                            <?= $level === (int)UZBLOKUOTAS
+                                ? 'selected' : '' ?>>
+                            Užblokuotas
+                        </option>
+                    </select>
+                </td>
+
+                <!-- El. paštas -->
+                <td><?= h($u['email']) ?></td>
+
+                <!-- Paskutinis aktyvumas -->
+                <td>
+                    <?= h(date(
+                        'Y-m-d H:i',
+                        strtotime($u['timestamp'])
+                    )) ?>
+                </td>
+
+                <!-- Skelbimų publikavimo leidimas -->
+                <td>
+                    <?php if (in_array($level, [4,5,9], true)): ?>
+
+                        <?= $leista ? 'Leista' : 'Neleista' ?>
+
+                        <form method="post"
+                              action="admin.php"
+                              style="display:inline-block;margin-left:8px">
+
+                            <input type="hidden"
+                                   name="leidimu_token"
+                                   value="<?= h($_SESSION['leidimu_token']) ?>">
+
+                            <input type="hidden"
+                                   name="userid"
+                                   value="<?= h($u['userid']) ?>">
+
+                            <input type="hidden"
+                                   name="gali_skelbti"
+                                   value="<?= $leista ? '0' : '1' ?>">
+
+                            <button type="submit"
+                                    name="keisti_skelbimo_leidima"
+                                    value="1">
+                                <?= $leista ? 'Atšaukti' : 'Suteikti' ?>
+                            </button>
+                        </form>
+
+                    <?php else: ?>
+                        Netaikoma
+                    <?php endif; ?>
+                </td>
+
+                <!-- Naudotojo šalinimas -->
+                <td>
+                    <input type="checkbox"
+                           name="naikinti_<?= h($user) ?>"
+                           form="vartotojai">
+                </td>
+            </tr>
+
+        <?php endwhile; ?>
+
+    </table>
+
+    <p>
+        <button type="submit" form="vartotojai">
+            Vykdyti rolių pakeitimus / šalinimą
+        </button>
+    </p>
+
+    <p>
+        <small>
+            Leidimai skelbti keičiami iš karto.
+            Rolių pakeitimams ir šalinimui naudokite
+            apatinį mygtuką.
+        </small>
+    </p>
+
+</body>
+</html>
+
+<?php $db->close(); ?>
