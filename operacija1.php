@@ -14,6 +14,7 @@ function h($value) {
 
 $skelbimai = [];
 $dbKlaida = false;
+$atidarytasSkelbimas = null;
 
 try {
     mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
@@ -38,11 +39,49 @@ try {
 
     $result = $db->query($sql);
 
-    while ($row = $result->fetch_assoc()) {
-        $skelbimai[] = $row;
-    }
+	while ($row = $result->fetch_assoc()) {
+		$skelbimai[] = $row;
+	}
 
-    $db->close();
+	// Skaičiuojame peržiūrą tik atidarius konkretų skelbimą
+	$atidarymoId = filter_input(
+		INPUT_GET,
+		'id',
+		FILTER_VALIDATE_INT,
+		['options' => ['min_range' => 1]]
+	);
+
+	if (is_int($atidarymoId)) {
+
+		foreach ($skelbimai as $s) {
+			if ((int)$s['skelbimas_id'] === $atidarymoId) {
+				$atidarytasSkelbimas = $s;
+				break;
+			}
+		}
+
+		if ($atidarytasSkelbimas !== null) {
+			$ziuretojasId = (int)($_SESSION['ulevel'] ?? 0) === 0
+				? null
+				: (string)($_SESSION['userid'] ?? '');
+
+			$stmt = $db->prepare(
+				"INSERT INTO perziura (skelbimas_id, naudotojas_id)
+				VALUES (?, ?)"
+			);
+
+			$stmt->bind_param(
+				"is",
+				$atidarymoId,
+				$ziuretojasId
+			);
+
+			$stmt->execute();
+			$stmt->close();
+		}
+	}
+
+	$db->close();
 
 } catch (mysqli_sql_exception $e) {
     error_log("Skelbimų nuskaitymo klaida: " . $e->getMessage());
@@ -84,6 +123,41 @@ try {
 
     <?php else: ?>
 
+		<?php if ($atidarytasSkelbimas !== null): ?>
+			<div style="border:2px solid #888; padding:15px;
+						margin:20px auto; max-width:650px;
+						text-align:left">
+
+				<h2><?= h($atidarytasSkelbimas['pavadinimas']) ?></h2>
+
+				<?php if (!empty($atidarytasSkelbimas['nuotraukos_kelias'])): ?>
+					<img
+						src="<?= h($atidarytasSkelbimas['nuotraukos_kelias']) ?>"
+						alt="Gyvūno nuotrauka"
+						style="max-width:300px;max-height:250px"
+					>
+				<?php endif; ?>
+
+				<p><b>Tipas:</b>
+					<?= $atidarytasSkelbimas['tipas'] === 'dinges'
+						? 'Dingęs' : 'Rastas' ?>
+				</p>
+
+				<p><b>Rūšis:</b>
+					<?= h($atidarytasSkelbimas['rusis']) ?>
+				</p>
+
+				<p><b>Vieta:</b>
+					<?= h($atidarytasSkelbimas['vieta']) ?>
+				</p>
+
+				<p><b>Aprašymas:</b></p>
+				<p><?= nl2br(h($atidarytasSkelbimas['aprasymas'])) ?></p>
+
+				<a href="operacija1.php">Grįžti į skelbimų sąrašą</a>
+			</div>
+		<?php endif; ?>
+
         <h2>Aktyvūs skelbimai</h2>
 
         <table border="1" cellpadding="8"
@@ -101,6 +175,7 @@ try {
                 <th>Autorius</th>
                 <th>Galioja iki</th>
 				<th>Susisiekti</th>
+				<th>Informacija</th>
             </tr>
 
             <?php foreach ($skelbimai as $s): ?>
@@ -157,6 +232,12 @@ try {
 							</a>
 
 						<?php endif; ?>
+					</td>
+
+					<td>
+						<a href="operacija1.php?id=<?= (int)$s['skelbimas_id'] ?>">
+							Peržiūrėti
+						</a>
 					</td>
                 </tr>
             <?php endforeach; ?>

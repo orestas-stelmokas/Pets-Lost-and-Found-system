@@ -78,3 +78,17 @@ CREATE TABLE IF NOT EXISTS zinute (
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS perziura (
+    perziura_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    skelbimas_id INT UNSIGNED NOT NULL,
+    naudotojas_id VARCHAR(32) NULL,
+    perziureta_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    INDEX idx_skelbimas (skelbimas_id),
+
+    FOREIGN KEY (skelbimas_id)
+        REFERENCES skelbimas(skelbimas_id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci;
