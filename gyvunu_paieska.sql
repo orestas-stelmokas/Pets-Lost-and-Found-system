@@ -1,5 +1,5 @@
 --
--- Database: `vartvald`
+-- Database: `gyvunu_paieska`
 --
 -- Table structure for table `users`
 --

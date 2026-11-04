@@ -3,18 +3,19 @@
 define("DB_SERVER", getenv("DB_HOST") ?: "localhost");
 define("DB_USER", getenv("DB_USER") ?: "stud");
 define("DB_PASS", getenv("DB_PASSWORD") ?: "stud");
-define("DB_NAME", getenv("DB_NAME") ?: "vartvald");
+define("DB_NAME", getenv("DB_NAME") ?: "gyvunu_paieska");
 define("TBL_USERS", "users");
 
 // Vartotojų profiliai
-$user_roles=array(      // vartotojų rolių vardai ir  atitinkamos userlevel reikšmės
-	"Administratorius"=>"9",
-	"Studentas"=>"4",
-	"Dėstytojas"=>"5",);   
+$user_roles = array(
+    "Administratorius" => "9",
+    "Registruotas naudotojas" => "4",
+    "Kontrolierius" => "5",
+); 
 // automatiškai galioja ir vartotojas "guest",rolė "Svečias",  userlevel=0
 //   jam irgi galima nurodyti leidžiamas operacijas
 
-define("DEFAULT_LEVEL","Studentas");  // kokia rolė priskiriama kai registruojasi
+define("DEFAULT_LEVEL","Registruotas naudotojas");  // kokia rolė priskiriama kai registruojasi
 define("ADMIN_LEVEL","Administratorius");  // jis turi vartotojų valdymo teisę per "Administratoriaus sąsaja"
 define("UZBLOKUOTAS","255");      // vartotojas negali prisijungti kol administratorius nepakeis rolės
 $uregister="both";  // kaip registruojami vartotojai:
