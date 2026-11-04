@@ -1,4 +1,4 @@
-<?php 
+<!-- <?php 
 // forgotpass.php  jei nesiseka prisijungti
 // is proclogin gauna:
 // $_SESSION['name_login']  vartotojas
@@ -40,8 +40,15 @@ if (empty($_SESSION['name_login'])) { header("Location: logout.php");exit;}
               </form> 
             </table>
    </body>
-</html>
+</html> -->
+<?php
+session_start();
 
+$_SESSION['message'] =
+    'Slaptažodžio atkūrimas šiame prototipe dar neįdiegtas.';
+
+header('Location: index.php');
+exit;
 
 
 

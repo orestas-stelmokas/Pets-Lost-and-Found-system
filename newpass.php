@@ -1,4 +1,4 @@
-<?php 
+<!-- <?php 
 // newpass.php 
 // iš proclogin per forgotpass.php gauna:
 // $_SESSION['name_login']  vartotojas
@@ -62,3 +62,12 @@ mail($to, $subject, $message, $headers);
    </body>
 </html>
 
+ -->
+<?php
+session_start();
+
+$_SESSION['message'] =
+    'Slaptažodžio atkūrimas šiame prototipe dar neįdiegtas.';
+
+header('Location: index.php');
+exit;
