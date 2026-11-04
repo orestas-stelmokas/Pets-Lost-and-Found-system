@@ -10,6 +10,49 @@ if (empty($_SESSION['user']) ||
     exit;
 }
 
+// Publikavimo leidimas tikrinamas pagal DB, ne sesiją
+require_once("include/nustatymai.php");
+
+if (empty($_SESSION['userid'])) {
+    header("Location: index.php");
+    exit;
+}
+
+$db = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME);
+
+$stmt = $db->prepare(
+    "SELECT gali_skelbti, userlevel
+     FROM users
+     WHERE userid = ? AND username = ?
+     LIMIT 1"
+);
+
+$userid = (string)$_SESSION['userid'];
+$username = (string)$_SESSION['user'];
+
+$stmt->bind_param("ss", $userid, $username);
+$stmt->execute();
+
+$naudotojas = $stmt->get_result()->fetch_assoc();
+
+$stmt->close();
+$db->close();
+
+if (!$naudotojas ||
+    (int)$naudotojas['gali_skelbti'] !== 1 ||
+    !in_array((int)$naudotojas['userlevel'], [4,5,9], true)) {
+
+    http_response_code(403);
+
+    echo '<h2>Neturite leidimo skelbti</h2>';
+    echo '<p>Administratoriaus leidimas dar nesuteiktas
+          arba buvo atšauktas.</p>';
+    echo '<a href="index.php">Grįžti į pradžią</a>';
+
+    exit;
+}
+
+
 function h($value) {
     return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
 }

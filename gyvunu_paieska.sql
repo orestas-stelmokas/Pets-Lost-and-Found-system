@@ -8,6 +8,7 @@ CREATE TABLE `users` (
   `password` varchar(32) DEFAULT NULL,
   `userid` varchar(32) NOT NULL,
   `userlevel` tinyint(1) UNSIGNED DEFAULT NULL,
+  `gali_skelbti` tinyint(1) NOT NULL DEFAULT 0,
   `email` varchar(50) DEFAULT NULL,
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
