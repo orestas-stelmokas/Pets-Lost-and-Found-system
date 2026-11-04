@@ -43,7 +43,7 @@ function checkname ($username){   // Vartotojo vardo sintakse
 			         {$_SESSION['pass_error']=
 						  "<font size=\"2\" color=\"#ff0000\">* Slaptažodžio ilgis <4 simbolius</font>";
 		              return false;}
-	          elseif ($dbpwd != substr(hash( 'sha256', $pwd ),5,32))
+	          elseif ($dbpwd != substr(hash( 'sha256', $pwd ),5,32)) // PAKEISTI I SAUGESNE HASH FUNKCIJA -------!!
                {$_SESSION['pass_error']=
 				   "<font size=\"2\" color=\"#ff0000\">* Neteisingas slaptažodis</font>";
                 return false;}
