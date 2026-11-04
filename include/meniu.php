@@ -2,7 +2,7 @@
 // meniu.php  rodomas meniu pagal vartotojo rolę
 
 if (!isset($_SESSION)) { header("Location: logout.php");exit;}
-include("include/nustatymai.php");
+require_once("include/nustatymai.php");
 $user=$_SESSION['user'];
 $userlevel=$_SESSION['ulevel'];
 if ($_SESSION['ulevel'] == 0)$role="Svečias";else $role="";

@@ -25,3 +25,23 @@ INSERT INTO `users` (`username`, `password`, `userid`, `userlevel`, `email`, `ti
 ALTER TABLE `users`
   ADD PRIMARY KEY (`userid`);
 
+-- Dingusių ir rastų gyvūnų skelbimai
+CREATE TABLE IF NOT EXISTS skelbimas (
+    skelbimas_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    autorius_id VARCHAR(32) NOT NULL,
+    tipas ENUM('dinges', 'rastas') NOT NULL,
+    pavadinimas VARCHAR(120) NOT NULL,
+    rusis VARCHAR(60) NOT NULL,
+    lytis ENUM('patinas', 'patele', 'nezinoma') NOT NULL,
+    amzius_men SMALLINT UNSIGNED NULL,
+    vieta VARCHAR(150) NOT NULL,
+    aprasymas TEXT NOT NULL,
+    galioja_iki DATE NULL,
+    busena ENUM('aktyvus', 'pasibaiges', 'pasalintas', 'issprestas')
+        NOT NULL DEFAULT 'aktyvus',
+    sukurtas_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    INDEX idx_autorius (autorius_id),
+    INDEX idx_busena (busena)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci;

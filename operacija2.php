@@ -1,7 +1,10 @@
 <?php
 session_start();
+require_once("include/nustatymai.php");
+date_default_timezone_set("Europe/Vilnius");
 
 if (empty($_SESSION['user']) ||
+    empty($_SESSION['userid']) ||
     !in_array((int)($_SESSION['ulevel'] ?? -1), [4,5,9], true)) {
     header("Location: index.php");
     exit;
@@ -23,19 +26,23 @@ $duomenys = [
 ];
 
 $klaidos = [];
-$perziura = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    // Paimame formos duomenis
     foreach ($duomenys as $laukas => $reiksme) {
         $ivestis = $_POST[$laukas] ?? '';
-        $duomenys[$laukas] = is_string($ivestis) ? trim($ivestis) : '';
+        $duomenys[$laukas] = is_string($ivestis)
+            ? trim($ivestis) : '';
     }
 
+    // Patikriname įvestus duomenis
     if (!in_array($duomenys['tipas'], ['dinges', 'rastas'], true)) {
         $klaidos[] = "Pasirinkite skelbimo tipą.";
     }
 
-    if (!in_array($duomenys['lytis'], ['patinas', 'patele', 'nezinoma'], true)) {
+    if (!in_array($duomenys['lytis'],
+        ['patinas', 'patele', 'nezinoma'], true)) {
         $klaidos[] = "Pasirinkite gyvūno lytį.";
     }
 
@@ -46,6 +53,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    $ribos = [
+        'pavadinimas' => 120,
+        'rusis' => 60,
+        'vieta' => 150
+    ];
+
+    foreach ($ribos as $laukas => $maksimumas) {
+        if (preg_match('/^.{0,' . $maksimumas . '}$/us',
+            $duomenys[$laukas]) !== 1) {
+            $klaidos[] = "Laukas „$laukas“ per ilgas.";
+        }
+    }
+
+    if (strlen($duomenys['aprasymas']) > 4000) {
+        $klaidos[] = "Aprašymas per ilgas.";
+    }
+
     if ($duomenys['amzius'] !== '' &&
         (!ctype_digit($duomenys['amzius']) ||
          (int)$duomenys['amzius'] > 360)) {
@@ -53,16 +77,74 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($duomenys['galioja_iki'] !== '') {
-        $data = DateTime::createFromFormat('!Y-m-d', $duomenys['galioja_iki']);
+        $data = DateTime::createFromFormat(
+            '!Y-m-d', $duomenys['galioja_iki']
+        );
 
         if (!$data ||
             $data->format('Y-m-d') !== $duomenys['galioja_iki'] ||
             $duomenys['galioja_iki'] < date('Y-m-d')) {
-            $klaidos[] = "Nurodykite galiojančią pabaigos datą.";
+            $klaidos[] = "Nurodykite tinkamą galiojimo datą.";
         }
     }
 
-    $perziura = empty($klaidos);
+    // Jei klaidų nėra, įrašome į MySQL
+    if (empty($klaidos)) {
+        try {
+            mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+            $db = new mysqli(
+                DB_SERVER, DB_USER, DB_PASS, DB_NAME
+            );
+            $db->set_charset("utf8mb4");
+
+            $sql = "INSERT INTO skelbimas
+                (autorius_id, tipas, pavadinimas, rusis,
+                 lytis, amzius_men, vieta, aprasymas, galioja_iki)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+            $stmt = $db->prepare($sql);
+
+            $autoriusId = (string)$_SESSION['userid'];
+            $tipas = $duomenys['tipas'];
+            $pavadinimas = $duomenys['pavadinimas'];
+            $rusis = $duomenys['rusis'];
+            $lytis = $duomenys['lytis'];
+            $amzius = $duomenys['amzius'] === ''
+                ? null : (int)$duomenys['amzius'];
+            $vieta = $duomenys['vieta'];
+            $aprasymas = $duomenys['aprasymas'];
+            $galiojaIki = $duomenys['galioja_iki'] === ''
+                ? null : $duomenys['galioja_iki'];
+
+            $stmt->bind_param(
+                "sssssisss",
+                $autoriusId,
+                $tipas,
+                $pavadinimas,
+                $rusis,
+                $lytis,
+                $amzius,
+                $vieta,
+                $aprasymas,
+                $galiojaIki
+            );
+
+            $stmt->execute();
+            $stmt->close();
+            $db->close();
+
+            $_SESSION['skelbimas_sekme'] =
+                "Skelbimas sėkmingai išsaugotas!";
+
+            header("Location: operacija1.php");
+            exit;
+
+        } catch (mysqli_sql_exception $e) {
+            error_log("Skelbimo įrašymo klaida: " . $e->getMessage());
+            $klaidos[] = "Nepavyko išsaugoti skelbimo. Bandykite dar kartą.";
+        }
+    }
 }
 ?>
 
@@ -151,20 +233,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                    value="<?= h($duomenys['galioja_iki']) ?>">
         </p>
 
-        <button type="submit">Peržiūrėti įvestus duomenis</button>
+        <button type="submit">Išsaugoti skelbimą</button>
     </form>
-
-    <?php if ($perziura): ?>
-        <hr>
-        <h2>Skelbimo peržiūra</h2>
-        <p><b>Duomenys patikrinti, bet dar neišsaugoti.</b></p>
-
-        <?php foreach ($duomenys as $laukas => $reiksme): ?>
-            <p>
-                <b><?= h(ucfirst(str_replace('_', ' ', $laukas))) ?>:</b>
-                <?= h($reiksme !== '' ? $reiksme : 'Nenurodyta') ?>
-            </p>
-        <?php endforeach; ?>
-    <?php endif; ?>
 </body>
 </html>
