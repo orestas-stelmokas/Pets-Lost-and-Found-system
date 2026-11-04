@@ -131,63 +131,156 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+	// Nuotraukos patikrinimas
+	$nuotraukosPletinys = null;
+	$nuotrauka = $_FILES['nuotrauka'] ?? null;
+
+	if ($nuotrauka !== null &&
+				($nuotrauka['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+
+				if (in_array($nuotrauka['error'] ?? null, [
+			UPLOAD_ERR_INI_SIZE,
+			UPLOAD_ERR_FORM_SIZE
+		], true)) {
+			$klaidos[] = "Nuotrauka per didelė. Maksimalus dydis – 5 MB.";
+		} elseif (($nuotrauka['error'] ?? null) !== UPLOAD_ERR_OK) {
+			$klaidos[] = "Nepavyko įkelti nuotraukos.";
+		} elseif (
+			!is_uploaded_file($nuotrauka['tmp_name']) ||
+			$nuotrauka['size'] > 5 * 1024 * 1024
+		) {
+			$klaidos[] = "Nuotrauka netinkama arba didesnė nei 5 MB.";
+		} else {
+			$finfo = new finfo(FILEINFO_MIME_TYPE);
+			$mime = $finfo->file($nuotrauka['tmp_name']);
+
+			$leidziami = [
+				'image/jpeg' => 'jpg',
+				'image/png' => 'png',
+				'image/webp' => 'webp'
+			];
+
+			if (!isset($leidziami[$mime]) ||
+				@getimagesize($nuotrauka['tmp_name']) === false) {
+				$klaidos[] = "Pasirinkite tikrą JPEG, PNG arba WebP nuotrauką.";
+			} else {
+				$nuotraukosPletinys = $leidziami[$mime];
+			}
+		}
+	}
+
     // Jei klaidų nėra, įrašome į MySQL
-    if (empty($klaidos)) {
-        try {
-            mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+	if (empty($klaidos)) {
+		$db = null;
+		$issaugotasFailas = null;
 
-            $db = new mysqli(
-                DB_SERVER, DB_USER, DB_PASS, DB_NAME
-            );
-            $db->set_charset("utf8mb4");
+		try {
+			mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-            $sql = "INSERT INTO skelbimas
-                (autorius_id, tipas, pavadinimas, rusis,
-                 lytis, amzius_men, vieta, aprasymas, galioja_iki)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			$db = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME);
+			$db->set_charset("utf8mb4");
+			$db->begin_transaction();
 
-            $stmt = $db->prepare($sql);
+			$sql = "INSERT INTO skelbimas
+				(autorius_id, tipas, pavadinimas, rusis,
+				lytis, amzius_men, vieta, aprasymas, galioja_iki)
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-            $autoriusId = (string)$_SESSION['userid'];
-            $tipas = $duomenys['tipas'];
-            $pavadinimas = $duomenys['pavadinimas'];
-            $rusis = $duomenys['rusis'];
-            $lytis = $duomenys['lytis'];
-            $amzius = $duomenys['amzius'] === ''
-                ? null : (int)$duomenys['amzius'];
-            $vieta = $duomenys['vieta'];
-            $aprasymas = $duomenys['aprasymas'];
-            $galiojaIki = $duomenys['galioja_iki'] === ''
-                ? null : $duomenys['galioja_iki'];
+			$stmt = $db->prepare($sql);
 
-            $stmt->bind_param(
-                "sssssisss",
-                $autoriusId,
-                $tipas,
-                $pavadinimas,
-                $rusis,
-                $lytis,
-                $amzius,
-                $vieta,
-                $aprasymas,
-                $galiojaIki
-            );
+			$autoriusId = (string)$_SESSION['userid'];
+			$tipas = $duomenys['tipas'];
+			$pavadinimas = $duomenys['pavadinimas'];
+			$rusis = $duomenys['rusis'];
+			$lytis = $duomenys['lytis'];
+			$amzius = $duomenys['amzius'] === ''
+				? null : (int)$duomenys['amzius'];
+			$vieta = $duomenys['vieta'];
+			$aprasymas = $duomenys['aprasymas'];
+			$galiojaIki = $duomenys['galioja_iki'] === ''
+				? null : $duomenys['galioja_iki'];
 
-            $stmt->execute();
-            $stmt->close();
-            $db->close();
+			$stmt->bind_param(
+				"sssssisss",
+				$autoriusId,
+				$tipas,
+				$pavadinimas,
+				$rusis,
+				$lytis,
+				$amzius,
+				$vieta,
+				$aprasymas,
+				$galiojaIki
+			);
 
-            $_SESSION['skelbimas_sekme'] =
-                "Skelbimas sėkmingai išsaugotas!";
+			$stmt->execute();
+			$skelbimoId = $db->insert_id;
+			$stmt->close();
 
-            header("Location: operacija1.php");
-            exit;
+			// Jei pasirinkta nuotrauka, įkeliame ją
+			if ($nuotraukosPletinys !== null) {
+				$katalogas = __DIR__ . '/uploads';
 
-        } catch (mysqli_sql_exception $e) {
-            error_log("Skelbimo įrašymo klaida: " . $e->getMessage());
-            $klaidos[] = "Nepavyko išsaugoti skelbimo. Bandykite dar kartą.";
-        }
-    }
+				if (!is_dir($katalogas) || !is_writable($katalogas)) {
+					throw new RuntimeException(
+						'Nuotraukų katalogas nepasiekiamas.'
+					);
+				}
+
+				$failoVardas = bin2hex(random_bytes(16))
+					. '.' . $nuotraukosPletinys;
+
+				$issaugotasFailas = $katalogas . '/' . $failoVardas;
+
+				if (!move_uploaded_file(
+					$nuotrauka['tmp_name'],
+					$issaugotasFailas
+				)) {
+					throw new RuntimeException(
+						'Nepavyko išsaugoti nuotraukos.'
+					);
+				}
+
+				$kelias = 'uploads/' . $failoVardas;
+
+				$stmt = $db->prepare(
+					"INSERT INTO nuotrauka (skelbimas_id, failo_kelias)
+					VALUES (?, ?)"
+				);
+
+				$stmt->bind_param("is", $skelbimoId, $kelias);
+				$stmt->execute();
+				$stmt->close();
+			}
+
+			$db->commit();
+			$db->close();
+
+			$_SESSION['skelbimas_sekme'] =
+				"Skelbimas sėkmingai išsaugotas!";
+
+			header("Location: operacija1.php");
+			exit;
+
+		} catch (Throwable $e) {
+			if ($db instanceof mysqli) {
+				try {
+					$db->rollback();
+					$db->close();
+				} catch (Throwable $ignored) {}
+			}
+
+			if ($issaugotasFailas !== null &&
+				is_file($issaugotasFailas)) {
+				unlink($issaugotasFailas);
+			}
+
+			error_log("Skelbimo klaida: " . $e->getMessage());
+
+			$klaidos[] =
+				"Nepavyko išsaugoti skelbimo. Bandykite dar kartą.";
+		}
+	}
 }
 ?>
 
@@ -209,8 +302,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <p style="color:red"><?= h($klaida) ?></p>
     <?php endforeach; ?>
 
-    <form method="post" style="display:inline-block;text-align:left">
-        <p>
+	<form method="post" enctype="multipart/form-data"
+		style="display:inline-block;text-align:left">        <p>
             Skelbimo tipas:<br>
             <select name="tipas" required>
                 <option value="">Pasirinkite</option>
@@ -275,6 +368,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                    min="<?= date('Y-m-d') ?>"
                    value="<?= h($duomenys['galioja_iki']) ?>">
         </p>
+
+		<p>
+			Gyvūno nuotrauka (neprivaloma):<br>
+			<input type="file" name="nuotrauka"
+				accept="image/jpeg,image/png,image/webp">
+			<br>
+			<small>JPEG, PNG arba WebP, iki 5 MB.</small>
+		</p>
 
         <button type="submit">Išsaugoti skelbimą</button>
     </form>

@@ -21,7 +21,14 @@ try {
     $db = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME);
     $db->set_charset("utf8mb4");
 
-    $sql = "SELECT s.*, u.username AS autorius
+    $sql = "SELECT s.*, u.username AS autorius,
+			(
+				SELECT n.failo_kelias
+				FROM nuotrauka n
+				WHERE n.skelbimas_id = s.skelbimas_id
+				ORDER BY n.eiles_nr, n.nuotrauka_id
+				LIMIT 1
+			) AS nuotraukos_kelias
             FROM skelbimas s
             LEFT JOIN users u ON s.autorius_id = u.userid
             WHERE s.busena = 'aktyvus'
@@ -83,6 +90,7 @@ try {
                style="margin:20px auto;border-collapse:collapse">
 
             <tr>
+				<th>Nuotrauka</th>
                 <th>Tipas</th>
                 <th>Pavadinimas</th>
                 <th>Rūšis</th>
@@ -96,6 +104,17 @@ try {
 
             <?php foreach ($skelbimai as $s): ?>
                 <tr>
+					<td>
+						<?php if (!empty($s['nuotraukos_kelias'])): ?>
+							<img
+								src="<?= h($s['nuotraukos_kelias']) ?>"
+								alt="Gyvūno nuotrauka"
+								style="width:130px;height:110px;object-fit:cover"
+							>
+						<?php else: ?>
+							Nuotraukos nėra
+						<?php endif; ?>
+					</td>
                     <td>
                         <?= $s['tipas'] === 'dinges'
                             ? 'Dingo' : 'Rastas' ?>
