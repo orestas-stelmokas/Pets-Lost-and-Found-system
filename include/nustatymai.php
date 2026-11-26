@@ -20,7 +20,7 @@ define("ADMIN_LEVEL","Administratorius");  // jis turi vartotojų valdymo teisę
 define("UZBLOKUOTAS","255");      // vartotojas negali prisijungti kol administratorius nepakeis rolės
 $uregister="both";  // kaip registruojami vartotojai:
 					// self - pats registruojasi, admin - tik ADMIN_LEVEL, both - abu atvejai
-
+define("ZINUCIU_DIENOS_LIMITAS", 3);
 // Operacijų meniu
 // Automatiškai rodomi punktai "Redaguoti paskyrą" ir "Atsijungti", 
 //  							o Administratoriui dar "Administratoriaus sąsaja"

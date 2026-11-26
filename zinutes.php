@@ -13,6 +13,32 @@ function h($value) {
     return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
 }
 
+function dienosZinuciuKiekis($db, $naudotojoId) {
+    $diena = new DateTimeImmutable(
+        'today',
+        new DateTimeZone('Europe/Vilnius')
+    );
+
+    $nuo = $diena->getTimestamp();
+    $iki = $diena->modify('+1 day')->getTimestamp();
+
+    $stmt = $db->prepare(
+        "SELECT COUNT(*) AS kiekis
+         FROM zinute
+         WHERE siuntejas_id = ?
+           AND issiusta_at >= FROM_UNIXTIME(?)
+           AND issiusta_at < FROM_UNIXTIME(?)"
+    );
+
+    $stmt->bind_param('sii', $naudotojoId, $nuo, $iki);
+    $stmt->execute();
+
+    $rezultatas = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    return (int)$rezultatas['kiekis'];
+}
+
 $manoId = (string)$_SESSION['userid'];
 $db = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME);
 $db->set_charset('utf8mb4');
@@ -146,6 +172,11 @@ if ($atidarytas) {
             preg_match('/\A.{1,2000}\z/us', $tekstas) !== 1
         ) {
             $klaida = 'Įveskite žinutę iki 2000 simbolių.';
+        } elseif (
+            (int)$_SESSION['ulevel'] === 4 &&
+            dienosZinuciuKiekis($db, $manoId) >= ZINUCIU_DIENOS_LIMITAS
+        ) {
+            $klaida = 'Pasiekėte dienos žinučių siuntimo limitą.';
         } else {
             $stmt = $db->prepare(
                 "INSERT INTO zinute
