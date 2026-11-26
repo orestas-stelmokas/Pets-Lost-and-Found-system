@@ -69,9 +69,73 @@ $duomenys = [
     'galioja_iki' => ''
 ];
 
+$redagavimas = isset($_GET['id']);
+
+$redagavimoId = filter_input(
+    INPUT_GET,
+    'id',
+    FILTER_VALIDATE_INT,
+    ['options' => ['min_range' => 1]]
+);
+
+if ($redagavimas) {
+
+    if (!$redagavimoId) {
+        http_response_code(400);
+        exit('Neteisingas skelbimo ID.');
+    }
+
+    $db = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME);
+    $db->set_charset('utf8mb4');
+
+    $stmt = $db->prepare(
+        "SELECT * FROM skelbimas
+         WHERE skelbimas_id = ?
+           AND autorius_id = ?
+           AND busena IN ('aktyvus', 'pasibaiges')"
+    );
+
+    $stmt->bind_param(
+        'is',
+        $redagavimoId,
+        $_SESSION['userid']
+    );
+
+    $stmt->execute();
+    $skelbimas = $stmt->get_result()->fetch_assoc();
+
+    $stmt->close();
+    $db->close();
+
+    if (!$skelbimas) {
+        http_response_code(404);
+        exit('Skelbimas nerastas arba negalite jo redaguoti.');
+    }
+
+    foreach ($duomenys as $laukas => $reiksme) {
+        $dbLaukas = $laukas === 'amzius'
+            ? 'amzius_men' : $laukas;
+
+        $duomenys[$laukas] =
+            (string)($skelbimas[$dbLaukas] ?? '');
+    }
+}
+
 $klaidos = [];
 
+if (empty($_SESSION['skelbimo_token'])) {
+    $_SESSION['skelbimo_token'] = bin2hex(random_bytes(32));
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $token = $_POST['token'] ?? '';
+
+    if (!is_string($token) ||
+        !hash_equals($_SESSION['skelbimo_token'], $token)) {
+
+        http_response_code(400);
+        exit('Neteisinga užklausa.');
+    }
 
     // Paimame formos duomenis
     foreach ($duomenys as $laukas => $reiksme) {
@@ -182,41 +246,97 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			$db->set_charset("utf8mb4");
 			$db->begin_transaction();
 
-			$sql = "INSERT INTO skelbimas
-				(autorius_id, tipas, pavadinimas, rusis,
-				lytis, amzius_men, vieta, aprasymas, galioja_iki)
-				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-			$stmt = $db->prepare($sql);
-
 			$autoriusId = (string)$_SESSION['userid'];
-			$tipas = $duomenys['tipas'];
-			$pavadinimas = $duomenys['pavadinimas'];
-			$rusis = $duomenys['rusis'];
-			$lytis = $duomenys['lytis'];
-			$amzius = $duomenys['amzius'] === ''
-				? null : (int)$duomenys['amzius'];
-			$vieta = $duomenys['vieta'];
-			$aprasymas = $duomenys['aprasymas'];
-			$galiojaIki = $duomenys['galioja_iki'] === ''
-				? null : $duomenys['galioja_iki'];
+            $tipas = $duomenys['tipas'];
+            $pavadinimas = $duomenys['pavadinimas'];
+            $rusis = $duomenys['rusis'];
+            $lytis = $duomenys['lytis'];
+            $amzius = $duomenys['amzius'] === ''
+                ? null : (int)$duomenys['amzius'];
+            $vieta = $duomenys['vieta'];
+            $aprasymas = $duomenys['aprasymas'];
+            $galiojaIki = $duomenys['galioja_iki'] === ''
+                ? null : $duomenys['galioja_iki'];
 
-			$stmt->bind_param(
-				"sssssisss",
-				$autoriusId,
-				$tipas,
-				$pavadinimas,
-				$rusis,
-				$lytis,
-				$amzius,
-				$vieta,
-				$aprasymas,
-				$galiojaIki
-			);
+            if ($redagavimas) {
 
-			$stmt->execute();
-			$skelbimoId = $db->insert_id;
-			$stmt->close();
+                // Pakartotinai patikriname skelbimą transakcijoje
+                $stmt = $db->prepare(
+                    "SELECT skelbimas_id FROM skelbimas
+                    WHERE skelbimas_id = ?
+                    AND autorius_id = ?
+                    AND busena IN ('aktyvus', 'pasibaiges')
+                    FOR UPDATE"
+                );
+
+                $stmt->bind_param('is', $redagavimoId, $autoriusId);
+                $stmt->execute();
+                $leidziama = $stmt->get_result()->fetch_assoc();
+                $stmt->close();
+
+                if (!$leidziama) {
+                    throw new RuntimeException('Redaguoti neleidžiama.');
+                }
+
+                $stmt = $db->prepare(
+                    "UPDATE skelbimas
+                    SET tipas = ?,
+                        pavadinimas = ?,
+                        rusis = ?,
+                        lytis = ?,
+                        amzius_men = ?,
+                        vieta = ?,
+                        aprasymas = ?,
+                        galioja_iki = ?,
+                        busena = 'aktyvus'
+                    WHERE skelbimas_id = ?
+                    AND autorius_id = ?"
+                );
+
+                $stmt->bind_param(
+                    'ssssisssis',
+                    $tipas,
+                    $pavadinimas,
+                    $rusis,
+                    $lytis,
+                    $amzius,
+                    $vieta,
+                    $aprasymas,
+                    $galiojaIki,
+                    $redagavimoId,
+                    $autoriusId
+                );
+
+                $stmt->execute();
+                $skelbimoId = $redagavimoId;
+
+            } else {
+
+                $stmt = $db->prepare(
+                    "INSERT INTO skelbimas
+                    (autorius_id, tipas, pavadinimas, rusis,
+                    lytis, amzius_men, vieta, aprasymas, galioja_iki)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                );
+
+                $stmt->bind_param(
+                    'sssssisss',
+                    $autoriusId,
+                    $tipas,
+                    $pavadinimas,
+                    $rusis,
+                    $lytis,
+                    $amzius,
+                    $vieta,
+                    $aprasymas,
+                    $galiojaIki
+                );
+
+                $stmt->execute();
+                $skelbimoId = $db->insert_id;
+            }
+
+            $stmt->close();
 
 			// Jei pasirinkta nuotrauka, įkeliame ją
 			if ($nuotraukosPletinys !== null) {
@@ -243,7 +363,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 				}
 
 				$kelias = 'uploads/' . $failoVardas;
+                if ($redagavimas) {
+                    $stmt = $db->prepare(
+                        "DELETE FROM nuotrauka WHERE skelbimas_id = ?"
+                    );
 
+                    $stmt->bind_param('i', $skelbimoId);
+                    $stmt->execute();
+                    $stmt->close();
+                }
 				$stmt = $db->prepare(
 					"INSERT INTO nuotrauka (skelbimas_id, failo_kelias)
 					VALUES (?, ?)"
@@ -257,11 +385,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			$db->commit();
 			$db->close();
 
-			$_SESSION['skelbimas_sekme'] =
-				"Skelbimas sėkmingai išsaugotas!";
+			if ($redagavimas) {
+                $_SESSION['mano_skelbimu_pranesimas'] =
+                    'Skelbimas sėkmingai atnaujintas.';
 
-			header("Location: operacija1.php");
-			exit;
+                header('Location: mano_skelbimai.php');
+            } else {
+                $_SESSION['skelbimas_sekme'] =
+                    'Skelbimas sėkmingai išsaugotas.';
+
+                header('Location: operacija1.php');
+            }
+
+            exit;
 
 		} catch (Throwable $e) {
 			if ($db instanceof mysqli) {
@@ -293,8 +429,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="include/styles.css" rel="stylesheet">
 </head>
 <body>
-    <h1>Naujo gyvūno skelbimo įvedimas</h1>
-
+    <h1>
+        <?= $redagavimas
+            ? 'Skelbimo redagavimas'
+            : 'Naujo gyvūno skelbimo įvedimas' ?>
+    </h1>
     <?php include("include/meniu.php"); ?>
 
     <p><a href="index.php">Grįžti į pradžią</a></p>
@@ -305,6 +444,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 	<form method="post" enctype="multipart/form-data"
 		style="display:inline-block;text-align:left">        <p>
+            <input 
+                type="hidden"
+                name="token"
+                value="<?= h($_SESSION['skelbimo_token']) ?>"
+            >
             Skelbimo tipas:<br>
             <select name="tipas" required>
                 <option value="">Pasirinkite</option>
@@ -378,7 +522,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			<small>JPEG, PNG arba WebP, iki 5 MB.</small>
 		</p>
 
-        <button type="submit">Išsaugoti skelbimą</button>
+        <button type="submit">
+            <?= $redagavimas
+                ? 'Išsaugoti pakeitimus'
+                : 'Išsaugoti skelbimą' ?>
+        </button>
     </form>
 </body>
 </html>

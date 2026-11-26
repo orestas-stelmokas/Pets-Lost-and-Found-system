@@ -130,7 +130,14 @@ $db->close();
 
                 <td>
                     <?php if ($s['busena'] !== 'pasalintas'): ?>
+                        <?php if ($galiSkelbti &&
+                            in_array($s['busena'], ['aktyvus', 'pasibaiges'], true)): ?>
 
+                            <a href="operacija2.php?id=<?= (int)$s['skelbimas_id'] ?>">
+                                Redaguoti
+                            </a>
+
+                        <?php endif; ?>
                         <form method="post">
 
                             <input type="hidden"
