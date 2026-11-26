@@ -5,7 +5,7 @@
 // taip pat iš čia išeina priminti slaptažodžio.
 // perėjimas į registraciją rodomas jei nustatyta $uregister kad galima pačiam registruotis
 
-if (!isset($_SESSION)) { header("Location: logout.php");exit;}
+if (!isset($_SESSION)) { header("Location: /logout");exit;}
 $_SESSION['prev'] = "login";
 require_once("include/nustatymai.php");
 ?>

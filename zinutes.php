@@ -156,7 +156,7 @@ if ($atidarytas) {
 
     if (!$partneris || $partnerioId === $manoId) {
         http_response_code(404);
-        exit('Pašnekovas nerastas.');
+        exit('Pašnekovas nerastas arba jo paskyra neaktyvi.');
     }
 
     // Naujos žinutės siuntimas

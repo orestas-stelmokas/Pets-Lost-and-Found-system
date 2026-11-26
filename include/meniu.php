@@ -1,7 +1,7 @@
 <?php
 // meniu.php  rodomas meniu pagal vartotojo rolę
 
-if (!isset($_SESSION)) { header("Location: logout.php");exit;}
+if (!isset($_SESSION)) { header("Location: /logout");exit;}
 require_once("include/nustatymai.php");
 $user=$_SESSION['user'];
 $userlevel=$_SESSION['ulevel'];
@@ -59,8 +59,8 @@ if ($userlevel != 0 && !empty($_SESSION['userid'])) {
  
         //Administratoriaus sąsaja rodoma tik administratoriui
         if ($userlevel == $user_roles[ADMIN_LEVEL] ) {
-            echo "[<a href=\"admin.php\">Administratoriaus sąsaja</a>] &nbsp;&nbsp;";
+            echo "[<a href=\"/admin\">Administratoriaus sąsaja</a>] &nbsp;&nbsp;";
         }
-        echo "[<a href=\"logout.php\">Atsijungti</a>]";
+        echo "[<a href=\"/logout\">Atsijungti</a>]";
       echo "</td></tr></table>";
 ?>       
