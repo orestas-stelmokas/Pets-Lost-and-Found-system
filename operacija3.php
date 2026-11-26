@@ -7,7 +7,7 @@ require_once 'include/skelbimai.php';
 if (empty($_SESSION['user']) ||
     empty($_SESSION['userid']) ||
     !in_array((int)($_SESSION['ulevel'] ?? -1), [5, 9], true)) {
-    header('Location: index.php');
+    header('Location: /home');
     exit;
 }
 
@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ? 'Skelbimas sėkmingai pašalintas.'
         : 'Skelbimas nerastas arba jau neaktyvus.';
 
-    header('Location: operacija3.php');
+    header('Location: /moderation');
     exit;
 }
 
@@ -109,7 +109,7 @@ $db->close();
 <head>
     <meta charset="UTF-8">
     <title>Skelbimų kontrolė</title>
-    <link href="include/styles.css" rel="stylesheet">
+    <link href="/include/styles.css" rel="stylesheet">
 </head>
 <body>
 
@@ -117,7 +117,7 @@ $db->close();
 
 <?php include 'include/meniu.php'; ?>
 
-<p><a href="index.php">Grįžti į pradžią</a></p>
+<p><a href="/home">Grįžti į pradžią</a></p>
 
 <?php if (!empty($_SESSION['kontroles_pranesimas'])): ?>
     <p style="color:green">

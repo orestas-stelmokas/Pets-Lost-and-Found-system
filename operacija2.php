@@ -7,7 +7,7 @@ date_default_timezone_set("Europe/Vilnius");
 if (empty($_SESSION['user']) ||
     empty($_SESSION['userid']) ||
     !in_array((int)($_SESSION['ulevel'] ?? -1), [4,5,9], true)) {
-    header("Location: index.php");
+    header("Location: /home");
     exit;
 }
 
@@ -15,7 +15,7 @@ if (empty($_SESSION['user']) ||
 require_once("include/nustatymai.php");
 
 if (empty($_SESSION['userid'])) {
-    header("Location: index.php");
+    header("Location: /home");
     exit;
 }
 
@@ -48,7 +48,7 @@ if (!$naudotojas ||
     echo '<h2>Neturite leidimo skelbti</h2>';
     echo '<p>Administratoriaus leidimas dar nesuteiktas
           arba buvo atšauktas.</p>';
-    echo '<a href="index.php">Grįžti į pradžią</a>';
+    echo '<a href="/home">Grįžti į pradžią</a>';
 
     exit;
 }
@@ -389,12 +389,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['mano_skelbimu_pranesimas'] =
                     'Skelbimas sėkmingai atnaujintas.';
 
-                header('Location: mano_skelbimai.php');
+                header('Location: /my-listings');
             } else {
                 $_SESSION['skelbimas_sekme'] =
                     'Skelbimas sėkmingai išsaugotas.';
 
-                header('Location: operacija1.php');
+                header('Location: /animals');
             }
 
             exit;
@@ -426,7 +426,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Naujas skelbimas</title>
-    <link href="include/styles.css" rel="stylesheet">
+    <link href="/include/styles.css" rel="stylesheet">
 </head>
 <body>
     <h1>
@@ -436,7 +436,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </h1>
     <?php include("include/meniu.php"); ?>
 
-    <p><a href="index.php">Grįžti į pradžią</a></p>
+    <p><a href="/home">Grįžti į pradžią</a></p>
 
     <?php foreach ($klaidos as $klaida): ?>
         <p style="color:red"><?= h($klaida) ?></p>

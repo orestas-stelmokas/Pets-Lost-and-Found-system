@@ -30,11 +30,11 @@ define("ZINUCIU_DIENOS_LIMITAS", 3);
 // operacijos modulis
 
 $usermenu=array(
-    ["Skelbimų peržiūra", [0,4,5,9], "operacija1.php"],
-    ["Skelbimo įvedimas", [4,5,9], "operacija2.php"],
-    ["Skelbimų kontrolė", [5,9], "operacija3.php"],
-	["Mano žinutės", [4,5,9], "zinutes.php"],
-    ["Mano skelbimai", [4,5,9], "mano_skelbimai.php"],
+    ["Skelbimų peržiūra", [0,4,5,9], "/animals"],
+    ["Skelbimo įvedimas", [4,5,9], "/create-listing"],
+    ["Skelbimų kontrolė", [5,9], "/moderation"],
+    ["Mano žinutės", [4,5,9], "/messages"],
+    ["Mano skelbimai", [4,5,9], "/my-listings"]
 			  ); 
 
 // karkaso vaizdavimą paredaguokite savo stiliumi keisdami top.png (pradinis yra 1027x122, read teisė visiems)

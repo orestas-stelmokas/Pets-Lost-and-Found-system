@@ -8,7 +8,7 @@
 session_start(); 
 // cia sesijos kontrole
 if (!isset($_SESSION['prev']) || ($_SESSION['prev'] != "register"))
-{ header("Location: logout.php");exit;}
+{ header("Location: /logout");exit;}
 
   require_once("include/nustatymai.php");
   require_once("include/functions.php");
@@ -51,8 +51,8 @@ if (!isset($_SESSION['prev']) || ($_SESSION['prev'] != "register"))
          
 		  // uzregistruotas
      
-           if ($_SESSION['ulevel'] == $user_roles[ADMIN_LEVEL] )  {header("Location:admin.php");} 
-		   else {header("Location:index.php");}
+           if ($_SESSION['ulevel'] == $user_roles[ADMIN_LEVEL] )  {header("Location:/admin");}
+		   else {header("Location:/home");}
 				
 		   exit;
           }
@@ -60,4 +60,4 @@ if (!isset($_SESSION['prev']) || ($_SESSION['prev'] != "register"))
 		}
         // griztam taisyti
          // session_regenerate_id(true);
-          header("Location:register.php");exit;
+          header("Location:/register");exit;

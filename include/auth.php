@@ -39,7 +39,7 @@ if (!$naudotojas ||
     $_SESSION['prev'] = 'blocked';
     $_SESSION['message'] = 'Jūsų paskyra neaktyvi arba užblokuota.';
 
-    header('Location: index.php');
+    header('Location: /home');
     exit;
 }
 

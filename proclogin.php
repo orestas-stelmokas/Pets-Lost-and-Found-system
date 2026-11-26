@@ -3,7 +3,7 @@ session_start();
 
 if (!isset($_SESSION['prev']) ||
     $_SESSION['prev'] !== 'login') {
-    header('Location: index.php');
+    header('Location: /home');
     exit;
 }
 
@@ -35,7 +35,7 @@ if (isset($_POST['problem'])) {
     $_SESSION['message'] =
         'Slaptažodžio atkūrimas šiame prototipe neįdiegtas.';
 
-    header('Location: index.php');
+    header('Location: /home');
     exit;
 }
 
@@ -91,5 +91,5 @@ if (checkname($user)) {
     }
 }
 
-header('Location: index.php');
+header('Location: /home');
 exit;

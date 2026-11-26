@@ -7,5 +7,5 @@ session_start();
 $_SESSION['message'] =
     'Slaptažodžio atkūrimas šiame prototipe dar neįdiegtas.';
 
-header('Location: index.php');
+header('Location: /home');
 exit;

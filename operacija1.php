@@ -6,7 +6,7 @@ require_once 'include/skelbimai.php';
 
 if (empty($_SESSION['user']) ||
     !in_array((int)($_SESSION['ulevel'] ?? -1), [0,4,5,9], true)) {
-    header("Location: index.php");
+    header("Location: /home");
     exit;
 }
 
@@ -126,7 +126,7 @@ try {
 <head>
     <meta charset="UTF-8">
     <title>Gyvūnų skelbimai</title>
-    <link href="include/styles.css" rel="stylesheet">
+    <link href="/include/styles.css" rel="stylesheet">
 </head>
 <body>
 
@@ -134,8 +134,8 @@ try {
 
     <?php include("include/meniu.php"); ?>
 
-    <p><a href="index.php">Grįžti į pradžią</a></p>
-	<form method="get" action="operacija1.php">
+    <p><a href="/home">Grįžti į pradžią</a></p>
+	<form method="get" action="/animals">
 
 		<input type="text"
 			name="paieska"
@@ -168,7 +168,7 @@ try {
 
 		<button type="submit">Ieškoti</button>
 
-		<a href="operacija1.php">Išvalyti filtrus</a>
+		<a href="/animals">Išvalyti filtrus</a>
 
 	</form>
     <?php if (!empty($_SESSION['skelbimas_sekme'])): ?>
@@ -221,7 +221,7 @@ try {
 				<p><b>Aprašymas:</b></p>
 				<p><?= nl2br(h($atidarytasSkelbimas['aprasymas'])) ?></p>
 
-				<a href="operacija1.php">Grįžti į skelbimų sąrašą</a>
+				<a href="/animals">Grįžti į skelbimų sąrašą</a>
 			</div>
 		<?php endif; ?>
 
@@ -290,11 +290,11 @@ try {
 							($_SESSION['userid'] ?? '') === $s['autorius_id']
 						): ?>
 
-							<a href="zinutes.php">Mano žinutės</a>
+							<a href="/messages">Mano žinutės</a>
 
 						<?php else: ?>
 
-							<a href="zinutes.php?skelbimas_id=<?= (int)$s['skelbimas_id'] ?>">
+							<a href="/messages?skelbimas_id=<?= (int)$s['skelbimas_id'] ?>">
 								Rašyti autoriui
 							</a>
 
@@ -302,7 +302,7 @@ try {
 					</td>
 
 					<td>
-						<a href="operacija1.php?id=<?= (int)$s['skelbimas_id'] ?>">
+						<a href="/animals?id=<?= (int)$s['skelbimas_id'] ?>">
 							Peržiūrėti
 						</a>
 					</td>

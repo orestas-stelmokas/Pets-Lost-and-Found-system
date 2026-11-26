@@ -7,7 +7,7 @@ require_once 'include/skelbimai.php';
 
 if (empty($_SESSION['userid']) ||
     !in_array((int)($_SESSION['ulevel'] ?? -1), [4,5,9], true)) {
-    header('Location: index.php');
+    header('Location: /home');
     exit;
 }
 
@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $stmt->close();
 
-    header('Location: mano_skelbimai.php');
+    header('Location: /my-listings');
     exit;
 }
 
@@ -90,7 +90,7 @@ $db->close();
 <head>
     <meta charset="UTF-8">
     <title>Mano skelbimai</title>
-    <link href="include/styles.css" rel="stylesheet">
+    <link href="/include/styles.css" rel="stylesheet">
 </head>
 <body>
 
@@ -136,7 +136,7 @@ $db->close();
                         <?php if ($galiSkelbti &&
                             in_array($s['busena'], ['aktyvus', 'pasibaiges'], true)): ?>
 
-                            <a href="operacija2.php?id=<?= (int)$s['skelbimas_id'] ?>">
+                            <a href="/create-listing?id=<?= (int)$s['skelbimas_id'] ?>">
                                 Redaguoti
                             </a>
 

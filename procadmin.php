@@ -13,7 +13,7 @@ if (
     !isset($_SESSION['ulevel']) ||
     (int) $_SESSION['ulevel'] !== (int) $user_roles[ADMIN_LEVEL]
 ) {
-    header("Location: index.php");
+    header("Location: /home");
     exit;
 }
 
@@ -30,15 +30,15 @@ $db=mysqli_connect(DB_SERVER, DB_USER, DB_PASS, DB_NAME);
     <head>
         <meta http-equiv="X-UA-Compatible" content="IE=9; text/html; charset=utf-8">
         <title>Administratoriaus sąsaja</title>
-        <link href="include/styles.css" rel="stylesheet" type="text/css" >
+        <link href="/include/styles.css" rel="stylesheet" type="text/css" >
     </head>
     <body>
         <table class="center" ><tr><td>
-            <center><img src="include/top.png"></center>
+            <center><img src="/include/top.png"></center>
 			</td></tr><tr><td><center><font size="5">Vartotojų įgaliojimų pakeitimas</font></center></td></tr></table> <br>
-		<form name="vartotojai" action="procadmindb.php" method="post">
+		<form name="vartotojai" action="/admin-save" method="post">
 		<table class="center" style="width:60%; border-width: 2px; border-style: dotted;"><tr><td width="50%" >
-           [<a href="admin.php">Atgal</a>]</td>
+           [<a href="/admin">Atgal</a>]</td>
 			<td width="40%">Patikrinkite ar teisingi pakeitimai</td><td width="10%"> <input type="submit" value="Atlikti"></td></tr></table> <br> 
 		
     <table class="center" border="1" cellspacing="0" cellpadding="3">
@@ -80,7 +80,7 @@ $db=mysqli_connect(DB_SERVER, DB_USER, DB_PASS, DB_NAME);
   				 echo "Kitose lentelėse gali likti susietų įrašų.";
 				}
 // pakeitimus irasysim i sesija 
-	if (empty($keisti)){header("Location:index.php");exit;}  //nieko nekeicia
+	if (empty($keisti)){header("Location:/home");exit;}  //nieko nekeicia
 		
    $_SESSION['ka_keisti']=$keisti; $_SESSION['pakeitimai']=$pakeitimai;
 ?>

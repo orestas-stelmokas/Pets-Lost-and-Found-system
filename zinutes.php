@@ -6,7 +6,7 @@ require_once("include/auth.php");
 if (empty($_SESSION['user']) ||
     empty($_SESSION['userid']) ||
     !in_array((int)($_SESSION['ulevel'] ?? -1), [4, 5, 9], true)) {
-    header('Location: index.php');
+    header('Location: /home');
     exit;
 }
 
@@ -107,7 +107,7 @@ if ($atidarytas) {
 
         if (!is_string($partnerioId) ||
             !preg_match('/^[a-f0-9]{32}$/i', $partnerioId)) {
-            header('Location: zinutes.php');
+            header('Location: /messages');
             exit;
         }
 
@@ -198,7 +198,7 @@ if ($atidarytas) {
 
             $_SESSION['zinutes_sekme'] = 'Žinutė išsiųsta.';
 
-            $url = 'zinutes.php?skelbimas_id=' . $skelbimoId;
+            $url = '/messages?skelbimas_id=' . $skelbimoId;
 
             if ($esuAutorius) {
                 $url .= '&partner_id=' . urlencode($partnerioId);
@@ -298,7 +298,7 @@ $db->close();
 <head>
     <meta charset="UTF-8">
     <title>Mano žinutės</title>
-    <link href="include/styles.css" rel="stylesheet">
+    <link href="/include/styles.css" rel="stylesheet">
 </head>
 <body>
 
@@ -307,8 +307,8 @@ $db->close();
 <?php include 'include/meniu.php'; ?>
 
 <p>
-    <a href="index.php">Pradžia</a> |
-    <a href="zinutes.php">Visi pokalbiai</a>
+    <a href="/home">Pradžia</a> |
+    <a href="/messages">Visi pokalbiai</a>
 </p>
 
 <?php if (!empty($_SESSION['zinutes_sekme'])): ?>
@@ -380,7 +380,7 @@ $db->close();
                     <td><?= h($p['partnerio_vardas']) ?></td>
                     <td><?= h($p['laikas']) ?></td>
                     <td>
-                        <a href="zinutes.php?skelbimas_id=<?= (int)$p['skelbimas_id'] ?>&amp;partner_id=<?= h($p['partnerio_id']) ?>">
+                        <a href="/messages?skelbimas_id=<?= (int)$p['skelbimas_id'] ?>&amp;partner_id=<?= h($p['partnerio_id']) ?>">
                             Atidaryti pokalbį
                         </a>
                     </td>

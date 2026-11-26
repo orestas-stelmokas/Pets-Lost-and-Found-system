@@ -6,7 +6,7 @@ require_once 'include/auth.php';
 
 if (empty($_SESSION['user']) ||
     (int)($_SESSION['ulevel'] ?? -1) !== (int)$user_roles[ADMIN_LEVEL]) {
-    header('Location: index.php');
+    header('Location: /home');
     exit;
 }
 
@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' &&
         ? 'Leidimas skelbti suteiktas.'
         : 'Leidimas skelbti atšauktas.';
 
-    header('Location: admin.php');
+    header('Location: /admin');
     exit;
 }
 
@@ -77,7 +77,7 @@ function h($text) {
 <head>
     <meta charset="UTF-8">
     <title>Naudotojų valdymas</title>
-    <link href="include/styles.css" rel="stylesheet">
+    <link href="/include/styles.css" rel="stylesheet">
 </head>
 <body>
 
@@ -85,10 +85,10 @@ function h($text) {
     <h2>Naudotojų valdymas</h2>
 
     <p>
-        <a href="index.php">Atgal į pradžią</a>
+        <a href="/home">Atgal į pradžią</a>
 
         <?php if ($uregister !== 'self'): ?>
-            | <a href="register.php">Registruoti naują naudotoją</a>
+            | <a href="/register">Registruoti naują naudotoją</a>
         <?php endif; ?>
     </p>
 
@@ -101,7 +101,7 @@ function h($text) {
 
     <!-- Rolių keitimui ir šalinimui skirta forma -->
     <form id="vartotojai"
-          action="procadmin.php"
+          action="/admin-confirm"
           method="post"></form>
 
     <table class="center" border="1"
@@ -165,7 +165,7 @@ function h($text) {
                         <?= $leista ? 'Leista' : 'Neleista' ?>
 
                         <form method="post"
-                              action="admin.php"
+                              action="/admin"
                               style="display:inline-block;margin-left:8px">
 
                             <input type="hidden"

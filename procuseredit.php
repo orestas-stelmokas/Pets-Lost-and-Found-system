@@ -16,7 +16,7 @@ require_once("include/auth.php");
 
 if (empty($_SESSION['userid']) ||
     !in_array((int)($_SESSION['ulevel'] ?? -1), [4,5,9], true)) {
-    header('Location: index.php');
+    header('Location: /home');
     exit;
 }
   $_SESSION['prev'] = "procuseredit";
@@ -48,7 +48,7 @@ if (empty($_SESSION['userid']) ||
 				} else {$_SESSION['message']="Nieko nekeitėt, paskyra nepakeista";}
                 $_SESSION['user']="";
             //    session_regenerate_id(true);
-      header("Location:index.php");exit;
+      header("Location:/home");exit;
 	  }  // yra kazkokiu klaidu, jos liecia ne galiojanti, o nauja slaptazodi, perrasom
            {$_SESSION['passn_error']=$_SESSION['pass_error'];$_SESSION['pass_error']="";} 
 	// jei neteisingas galiojantis, nieko daugiau netikrinom 
@@ -56,4 +56,4 @@ if (empty($_SESSION['userid']) ||
    // taisyti
    $_SESSION['message']="Yra klaidų";
   // session_regenerate_id(true);
-   header("Location:useredit.php");exit;
+   header("Location:/profile");exit;

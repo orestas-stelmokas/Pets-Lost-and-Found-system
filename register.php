@@ -6,7 +6,7 @@
 // formos laukus tikrins procregister.php
 
 session_start();
-if (empty($_SESSION['prev'])) { header("Location: logout.php");exit;} // registracija galima kai nera userio arba adminas
+if (empty($_SESSION['prev'])) { header("Location: /logout");exit;} // registracija galima kai nera userio arba adminas
 // kitaip kai sesija expirinasi blogai, laikykim, kad prev vistik visada nustatoma
 require_once("include/nustatymai.php");
 require_once("include/functions.php");
@@ -19,16 +19,16 @@ $_SESSION['prev']="register";
         <head>  
             <meta http-equiv="X-UA-Compatible" content="IE=9; text/html; charset=utf-8"> 
             <title>Registracija</title>
-            <link href="include/styles.css" rel="stylesheet" type="text/css" >
+            <link href="/include/styles.css" rel="stylesheet" type="text/css" >
         </head>
         <body>   
-                    <table class="center"><tr><td><img src="include/top.png"></td></tr><tr><td> 
+                    <table class="center"><tr><td><img src="/include/top.png"></td></tr><tr><td>
                         <table style="border-width: 2px; border-style: dotted;"><tr><td>
-                           Atgal į [<a href="index.php">Pradžia</a>]</td></tr>
+                           Atgal į [<a href="/home">Pradžia</a>]</td></tr>
 				    </table>   
 								<div align="center">
                     			<table> <tr><td>
-                                    <form action="procregister.php" method="POST" class="login">              
+                                    <form action="/register" method="POST" class="login">
                                                 <center style="font-size:18pt;"><b>Registracija</b></center>
 										
 									<p style="text-align:left;">Vartotojo vardas:<br>

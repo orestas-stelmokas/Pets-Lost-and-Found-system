@@ -10,7 +10,7 @@ $_SESSION['prev'] = "login";
 require_once("include/nustatymai.php");
 ?>
 
-		<form action="proclogin.php" method="POST" class="login">             
+		<form action="/login" method="POST" class="login">
         <center style="font-size:18pt;"><b>Prisijungimas</b></center>
         <p style="text-align:left;">Vartotojo vardas:<br>
             <input class ="s1" name="user" type="text" value="<?php echo $_SESSION['name_login'];  ?>"/><br>
@@ -28,8 +28,8 @@ require_once("include/nustatymai.php");
         </p>
         <p>
  <?php
-			if ($uregister != "admin") { echo "<a href=\"register.php\">Registracija</a>";}
-			echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href=\"guest.php\">Svečias</a>";
+			if ($uregister != "admin") { echo "<a href=\"/register\">Registracija</a>";}
+			echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href=\"/guest\">Svečias</a>";
 ?>
         </p>     
     </form>

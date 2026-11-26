@@ -9,7 +9,7 @@ require_once("include/auth.php");
 
 if (empty($_SESSION['userid']) ||
     !in_array((int)($_SESSION['ulevel'] ?? -1), [4,5,9], true)) {
-    header('Location: index.php');
+    header('Location: /home');
     exit;
 }
 
@@ -28,18 +28,18 @@ $_SESSION['prev'] = "useredit";
         <head>  
             <meta http-equiv="X-UA-Compatible" content="IE=9; text/html; charset=utf-8"> 
             <title>Registracija</title>
-            <link href="include/styles.css" rel="stylesheet" type="text/css" >
+            <link href="/include/styles.css" rel="stylesheet" type="text/css" >
         </head>
         <body>   
-            <table class="center"><tr><td> <img src="include/top.png"> </td></tr><tr><td> 
+            <table class="center"><tr><td> <img src="/include/top.png"> </td></tr><tr><td>
 				<table style="border-width: 2px; border-style: dotted;"><tr><td>
-                     Atgal į [<a href="index.php">Pradžia</a>] </td></tr>
+                     Atgal į [<a href="/home">Pradžia</a>] </td></tr>
 		        </table>               
                 <div align="center">   <font size="4" color="#ff0000"><?php echo $_SESSION['message']; ?><br></font>  
 					
       <table bgcolor=#C3FDB8>
         <tr><td>
-		<form action="procuseredit.php" method="POST" class="login">             
+		<form action="/profile" method="POST" class="login">
         <center style="font-size:18pt;"><b>Paskyros redagavimas</b></center><br>
 		<center style="font-size:14pt;"><b>Vartotojas: <?php echo $_SESSION['user'];  ?></b></center>
         

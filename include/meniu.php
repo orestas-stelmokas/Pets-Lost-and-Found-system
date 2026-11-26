@@ -47,7 +47,7 @@ if ($userlevel != 0 && !empty($_SESSION['userid'])) {
         if ($userlevel != 0) echo "[<a href=\"useredit.php\">Redaguoti paskyrą</a>] &nbsp;&nbsp;";
        
 		foreach ($usermenu as $x) {
-            if ($x[2] === "operacija2.php" && !$galiSkelbti) {
+            if ($x[2] === "/create-listing" && !$galiSkelbti) {
                 continue;
             }
 			foreach ($x[1] as $menulevel) {

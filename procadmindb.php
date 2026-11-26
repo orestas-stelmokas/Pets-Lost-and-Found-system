@@ -16,7 +16,7 @@ if (
     empty($_SESSION['ka_keisti']) ||
     !isset($_SESSION['pakeitimai'])
 ) {
-    header("Location: index.php");
+    header("Location: /home");
     exit;
 }
 
@@ -38,4 +38,4 @@ foreach ($_SESSION['ka_keisti'] as $user)
 		               exit;}
   }}
 $_SESSION['message']="Pakeitimai atlikti sėkmingai";
-header("Location:admin.php");exit;
+header("Location:/admin");exit;

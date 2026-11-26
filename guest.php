@@ -5,9 +5,9 @@
 session_start(); 
 // cia sesijos kontrole:
   if (!isset($_SESSION['prev']) || ($_SESSION['prev'] != "login"))
-	{ header("Location: logout.php");exit;}
+	{ header("Location: /logout");exit;}
   $_SESSION['prev'] = "guest";
   $_SESSION['user'] = "guest";
   $_SESSION['ulevel'] =0;
-header("Location:index.php");exit;
+header("Location:/home");exit;
  
