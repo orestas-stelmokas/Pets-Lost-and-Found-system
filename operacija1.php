@@ -17,6 +17,15 @@ $skelbimai = [];
 $dbKlaida = false;
 $atidarytasSkelbimas = null;
 
+$paieska = trim((string)($_GET['paieska'] ?? ''));
+$tipas = $_GET['tipas'] ?? '';
+$rusis = trim((string)($_GET['rusis'] ?? ''));
+$vieta = trim((string)($_GET['vieta'] ?? ''));
+
+if (!in_array($tipas, ['dinges', 'rastas'], true)) {
+    $tipas = '';
+}
+
 try {
     mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
@@ -24,26 +33,47 @@ try {
     $db->set_charset("utf8mb4");
 
     $sql = "SELECT s.*, u.username AS autorius,
-			(
-				SELECT n.failo_kelias
-				FROM nuotrauka n
-				WHERE n.skelbimas_id = s.skelbimas_id
-				ORDER BY n.eiles_nr, n.nuotrauka_id
-				LIMIT 1
-			) AS nuotraukos_kelias
-            FROM skelbimas s
-            LEFT JOIN users u ON s.autorius_id = u.userid
-            WHERE s.busena = 'aktyvus'
-              AND (s.galioja_iki IS NULL
-                   OR s.galioja_iki >= CURDATE())
-            ORDER BY s.sukurtas_at DESC, s.skelbimas_id DESC";
+        (
+            SELECT n.failo_kelias
+            FROM nuotrauka n
+            WHERE n.skelbimas_id = s.skelbimas_id
+            ORDER BY n.eiles_nr, n.nuotrauka_id
+            LIMIT 1
+        ) AS nuotraukos_kelias
+        FROM skelbimas s
+        LEFT JOIN users u ON s.autorius_id = u.userid
+        WHERE s.busena = 'aktyvus'
+        AND (s.galioja_iki IS NULL
+             OR s.galioja_iki >= CURDATE())
+        AND (s.pavadinimas LIKE ? OR s.aprasymas LIKE ?)
+        AND (? = '' OR s.tipas = ?)
+        AND s.rusis LIKE ?
+        AND s.vieta LIKE ?
+        ORDER BY s.sukurtas_at DESC, s.skelbimas_id DESC";
 
-    $result = $db->query($sql);
+	$paieskosParam = '%' . $paieska . '%';
+	$rusiesParam = '%' . $rusis . '%';
+	$vietosParam = '%' . $vieta . '%';
+
+	$stmt = $db->prepare($sql);
+
+	$stmt->bind_param(
+		'ssssss',
+		$paieskosParam,
+		$paieskosParam,
+		$tipas,
+		$tipas,
+		$rusiesParam,
+		$vietosParam
+	);
+
+	$stmt->execute();
+	$result = $stmt->get_result();
 
 	while ($row = $result->fetch_assoc()) {
 		$skelbimai[] = $row;
 	}
-
+	$stmt->close();
 	// Skaičiuojame peržiūrą tik atidarius konkretų skelbimą
 	$atidarymoId = filter_input(
 		INPUT_GET,
@@ -104,7 +134,42 @@ try {
     <?php include("include/meniu.php"); ?>
 
     <p><a href="index.php">Grįžti į pradžią</a></p>
+	<form method="get" action="operacija1.php">
 
+		<input type="text"
+			name="paieska"
+			placeholder="Ieškoti skelbimų..."
+			value="<?= h($paieska) ?>">
+
+		<select name="tipas">
+			<option value="">Visi skelbimai</option>
+
+			<option value="dinges"
+				<?= $tipas === 'dinges' ? 'selected' : '' ?>>
+				Dingę
+			</option>
+
+			<option value="rastas"
+				<?= $tipas === 'rastas' ? 'selected' : '' ?>>
+				Rasti
+			</option>
+		</select>
+
+		<input type="text"
+			name="rusis"
+			placeholder="Gyvūno rūšis"
+			value="<?= h($rusis) ?>">
+
+		<input type="text"
+			name="vieta"
+			placeholder="Vieta"
+			value="<?= h($vieta) ?>">
+
+		<button type="submit">Ieškoti</button>
+
+		<a href="operacija1.php">Išvalyti filtrus</a>
+
+	</form>
     <?php if (!empty($_SESSION['skelbimas_sekme'])): ?>
         <p style="color:green">
             <?= h($_SESSION['skelbimas_sekme']) ?>
@@ -120,7 +185,7 @@ try {
 
     <?php elseif (empty($skelbimai)): ?>
 
-        <p>Šiuo metu aktyvių skelbimų nėra.</p>
+        <p>Skelbimų pagal pasirinktus kriterijus nerasta.</p>
 
     <?php else: ?>
 
