@@ -8,8 +8,9 @@
 session_start();
 if (empty($_SESSION['prev'])) { header("Location: logout.php");exit;} // registracija galima kai nera userio arba adminas
 // kitaip kai sesija expirinasi blogai, laikykim, kad prev vistik visada nustatoma
-include("include/nustatymai.php");
-include("include/functions.php");
+require_once("include/nustatymai.php");
+require_once("include/functions.php");
+require_once("include/auth.php");
 if ($_SESSION['prev'] != "procregister")  inisession("part");  // pradinis bandymas registruoti
 
 $_SESSION['prev']="register";

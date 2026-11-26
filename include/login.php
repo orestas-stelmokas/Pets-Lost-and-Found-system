@@ -7,7 +7,7 @@
 
 if (!isset($_SESSION)) { header("Location: logout.php");exit;}
 $_SESSION['prev'] = "login";
-include("include/nustatymai.php");
+require_once("include/nustatymai.php");
 ?>
 
 		<form action="proclogin.php" method="POST" class="login">             

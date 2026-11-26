@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once("include/nustatymai.php");
+require_once("include/auth.php");
 date_default_timezone_set("Europe/Vilnius");
 
 if (empty($_SESSION['user']) ||

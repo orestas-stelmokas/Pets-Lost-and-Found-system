@@ -10,8 +10,9 @@ session_start();
 if (!isset($_SESSION['prev']) || ($_SESSION['prev'] != "register"))
 { header("Location: logout.php");exit;}
 
-  include("include/nustatymai.php");
-  include("include/functions.php");
+  require_once("include/nustatymai.php");
+  require_once("include/functions.php");
+  require_once("include/auth.php");
  
   $_SESSION['name_error']="";
   $_SESSION['pass_error']="";

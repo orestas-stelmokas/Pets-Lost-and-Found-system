@@ -4,6 +4,15 @@
 // formos reikšmes tikrins procuseredit.php. Esant klaidų pakartotinai rodant formą rodomos ir klaidos
 
 session_start();
+
+require_once("include/auth.php");
+
+if (empty($_SESSION['userid']) ||
+    !in_array((int)($_SESSION['ulevel'] ?? -1), [4,5,9], true)) {
+    header('Location: index.php');
+    exit;
+}
+
 // sesijos kontrole
 if (!isset($_SESSION['prev']) || (($_SESSION['prev'] != "index") && ($_SESSION['prev'] != "procuseredit")  && ($_SESSION['prev'] != "useredit")))
 {header("Location: logout.php");exit;

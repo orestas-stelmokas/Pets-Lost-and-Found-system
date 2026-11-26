@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once("include/nustatymai.php");
+require_once("include/auth.php");
 
 if (empty($_SESSION['user']) ||
     !in_array((int)($_SESSION['ulevel'] ?? -1), [0,4,5,9], true)) {

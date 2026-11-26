@@ -4,8 +4,9 @@
 
 session_start();
 
-include("include/nustatymai.php");
-include("include/functions.php");
+require_once("include/nustatymai.php");
+require_once 'include/functions.php';
+require_once 'include/auth.php';
 
 if (
     empty($_SESSION['user']) ||

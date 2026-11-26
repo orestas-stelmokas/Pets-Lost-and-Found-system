@@ -5,7 +5,9 @@
 // toje formoje daugiau galimybių...
 
 session_start();
-include("include/functions.php");
+
+require_once 'include/functions.php';
+require_once 'include/auth.php';
 ?>
 
 <html>

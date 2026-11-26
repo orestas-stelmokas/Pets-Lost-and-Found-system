@@ -10,8 +10,15 @@ session_start();
 //if (!isset($_SESSION['prev']) || ($_SESSION['prev'] != "useredit"))
 //{ header("Location: logout.php");exit;}
 
-  include("include/nustatymai.php");
-  include("include/functions.php");
+require_once("include/nustatymai.php");
+require_once("include/functions.php");
+require_once("include/auth.php"); 
+
+if (empty($_SESSION['userid']) ||
+    !in_array((int)($_SESSION['ulevel'] ?? -1), [4,5,9], true)) {
+    header('Location: index.php');
+    exit;
+}
   $_SESSION['prev'] = "procuseredit";
   $_SESSION['pass_error']="";
   $_SESSION['mail_error']="";

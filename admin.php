@@ -2,6 +2,7 @@
 session_start();
 require_once 'include/nustatymai.php';
 require_once 'include/functions.php';
+require_once 'include/auth.php';
 
 if (empty($_SESSION['user']) ||
     (int)($_SESSION['ulevel'] ?? -1) !== (int)$user_roles[ADMIN_LEVEL]) {
