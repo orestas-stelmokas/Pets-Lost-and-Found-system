@@ -2,6 +2,7 @@
 session_start();
 require_once("include/nustatymai.php");
 require_once("include/auth.php");
+require_once 'include/skelbimai.php';
 
 if (empty($_SESSION['user']) ||
     empty($_SESSION['userid']) ||
@@ -16,6 +17,8 @@ function h($value) {
 
 $db = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME);
 $db->set_charset('utf8mb4');
+
+atnaujintiSkelbimuGaliojima($db);
 
 // Patikriname rolę ir duomenų bazėje
 $manoId = (string)$_SESSION['userid'];

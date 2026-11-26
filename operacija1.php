@@ -2,6 +2,7 @@
 session_start();
 require_once("include/nustatymai.php");
 require_once("include/auth.php");
+require_once 'include/skelbimai.php';
 
 if (empty($_SESSION['user']) ||
     !in_array((int)($_SESSION['ulevel'] ?? -1), [0,4,5,9], true)) {
@@ -30,7 +31,9 @@ try {
     mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
     $db = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME);
-    $db->set_charset("utf8mb4");
+	$db->set_charset('utf8mb4');
+
+	atnaujintiSkelbimuGaliojima($db);
 
     $sql = "SELECT s.*, u.username AS autorius,
         (
@@ -43,8 +46,6 @@ try {
         FROM skelbimas s
         LEFT JOIN users u ON s.autorius_id = u.userid
         WHERE s.busena = 'aktyvus'
-        AND (s.galioja_iki IS NULL
-             OR s.galioja_iki >= CURDATE())
         AND (s.pavadinimas LIKE ? OR s.aprasymas LIKE ?)
         AND (? = '' OR s.tipas = ?)
         AND s.rusis LIKE ?

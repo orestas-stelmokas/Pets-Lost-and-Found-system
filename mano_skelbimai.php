@@ -3,6 +3,7 @@
 session_start();
 require_once 'include/auth.php';
 require_once 'include/nustatymai.php';
+require_once 'include/skelbimai.php';
 
 if (empty($_SESSION['userid']) ||
     !in_array((int)($_SESSION['ulevel'] ?? -1), [4,5,9], true)) {
@@ -16,6 +17,8 @@ function h($value) {
 
 $db = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME);
 $db->set_charset('utf8mb4');
+
+atnaujintiSkelbimuGaliojima($db);
 
 $manoId = (string)$_SESSION['userid'];
 
